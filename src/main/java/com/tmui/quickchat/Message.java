@@ -26,6 +26,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * sent while the program is running.
  *
  * 
+ * JSON storing approach based on the Gson documentation:
+ * https://github.com/google/gson
+ *
  * @author Tshiamo
  */
 public class Message {
