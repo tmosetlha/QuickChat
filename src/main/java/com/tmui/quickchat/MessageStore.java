@@ -28,6 +28,7 @@ import java.util.Arrays;
  * The arrays are filled while the program runs (nothing is hard-coded). The
  * stored-messages array is also filled by reading the JSON file written in
  * Part 2. JSON reading approach based on the Gson documentation:
+ * https://github.com/google/gson
  * 
  * The sent and stored messages are the messages that still exist, so the
  * menu features work on both. Disregarded messages are kept in their own
