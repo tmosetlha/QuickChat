@@ -8,6 +8,7 @@ import java.util.Scanner;
  * Part 1: registration and login.
  * Part 2: sending messages (numeric menu, message entry, send /
  * disregard / store).
+ * Part 3: stored messages menu (arrays, search, delete and report).
  *
  * @author Tshiamo
  */
@@ -24,7 +25,7 @@ public class QuickChat {
         loginUser(scanner, login);
 
         // Only reached once the user has logged in successfully.
-        runMessaging(scanner);
+        runMessaging(scanner, register.getStoredFirstName() + " " + register.getStoredLastName());
 
         scanner.close();
     }
@@ -101,9 +102,16 @@ public class QuickChat {
     // Part 2 - sending messages
     // ------------------------------------------------------------------
 
-    private static void runMessaging(Scanner scanner) {
+    private static void runMessaging(Scanner scanner, String sender) {
         System.out.println();
         System.out.println("Welcome to QuickChat.");
+
+        // Part 3: the arrays that hold sent, disregarded and stored messages.
+        MessageStore store = new MessageStore();
+        int loaded = store.loadStoredMessages();
+        if (loaded > 0) {
+            System.out.println(loaded + " stored message(s) loaded from storedmessages.json.");
+        }
 
         // The user sets how many messages they will enter, once, at the start.
         int limit = askForMessageCount(scanner);
@@ -115,6 +123,7 @@ public class QuickChat {
             System.out.println("1) Send Messages");
             System.out.println("2) Show recently sent messages");
             System.out.println("3) Quit");
+            System.out.println("4) Stored Messages");
             System.out.print("Choose an option: ");
 
             switch (scanner.nextLine().trim()) {
@@ -122,12 +131,13 @@ public class QuickChat {
                     if (entered >= limit) {
                         System.out.println("You have already entered all " + limit + " of your messages.");
                     } else {
-                        entered = enterMessages(scanner, entered, limit);
+                        entered = enterMessages(scanner, store, entered, limit);
                     }
                 }
                 case "2" -> System.out.println("Coming Soon.");
                 case "3" -> running = false;
-                default -> System.out.println("Invalid option; please enter 1, 2 or 3.");
+                case "4" -> runStoredMessagesMenu(scanner, store, sender);
+                default -> System.out.println("Invalid option; please enter 1, 2, 3 or 4.");
             }
         }
 
@@ -136,7 +146,7 @@ public class QuickChat {
     }
 
     // Keeps asking for messages until the set number has been entered.
-    private static int enterMessages(Scanner scanner, int entered, int limit) {
+    private static int enterMessages(Scanner scanner, MessageStore store, int entered, int limit) {
         while (entered < limit) {
             System.out.println();
             System.out.println("--- Message " + (entered + 1) + " of " + limit + " ---");
@@ -146,14 +156,19 @@ public class QuickChat {
             Message message = new Message(recipient, text);
 
             int choice = askForSendChoice(scanner);
-            System.out.println(message.sentMessage(choice));
+            String result = message.sentMessage(choice);
+            System.out.println(result);
 
             if (choice == Message.SEND) {
+                store.addMessage(message, Message.SEND);
                 System.out.println();
                 System.out.println(message.getDetails());
             } else if (choice == Message.DISREGARD) {
                 waitForZero(scanner);
                 System.out.println("Message deleted.");
+                store.addMessage(message, Message.DISREGARD);
+            } else if (choice == Message.STORE && result.equals("Message successfully stored")) {
+                store.addMessage(message, Message.STORE);
             }
             entered++;
         }
@@ -165,6 +180,59 @@ public class QuickChat {
         System.out.println();
         System.out.println("Total messages sent: " + Message.returnTotalMessages());
         return entered;
+    }
+
+    // ------------------------------------------------------------------
+    // Part 3 - stored messages menu
+    // ------------------------------------------------------------------
+
+    private static void runStoredMessagesMenu(Scanner scanner, MessageStore store, String sender) {
+        boolean inMenu = true;
+        while (inMenu) {
+            System.out.println();
+            System.out.println("--- Stored Messages ---");
+            System.out.println("a) Display the sender and recipient of all messages");
+            System.out.println("b) Display the longest message");
+            System.out.println("c) Search for a message ID");
+            System.out.println("d) Search for all messages for a recipient");
+            System.out.println("e) Delete a message using its message hash");
+            System.out.println("f) Display a report of all messages");
+            System.out.println("g) Back to the main menu");
+            System.out.print("Choose an option: ");
+
+            switch (scanner.nextLine().trim().toLowerCase()) {
+                case "a" -> System.out.println(store.displaySendersAndRecipients(sender));
+                case "b" -> System.out.println("Longest message: " + store.getLongestMessage());
+                case "c" -> {
+                    System.out.print("Enter the message ID: ");
+                    Message found = store.searchByMessageID(scanner.nextLine());
+                    if (found == null) {
+                        System.out.println("No message found with that ID.");
+                    } else {
+                        System.out.println("Recipient: " + found.getRecipient());
+                        System.out.println("Message: " + found.getMessageText());
+                    }
+                }
+                case "d" -> {
+                    System.out.print("Enter the recipient's cell phone number: ");
+                    String[] found = store.searchByRecipient(scanner.nextLine());
+                    if (found.length == 0) {
+                        System.out.println("No messages found for that recipient.");
+                    } else {
+                        for (int i = 0; i < found.length; i++) {
+                            System.out.println((i + 1) + ". " + found[i]);
+                        }
+                    }
+                }
+                case "e" -> {
+                    System.out.print("Enter the message hash: ");
+                    System.out.println(store.deleteByHash(scanner.nextLine()));
+                }
+                case "f" -> System.out.println(store.displayReport());
+                case "g" -> inMenu = false;
+                default -> System.out.println("Invalid option; please enter a, b, c, d, e, f or g.");
+            }
+        }
     }
 
     private static int askForMessageCount(Scanner scanner) {
