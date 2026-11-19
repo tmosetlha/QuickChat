@@ -2,7 +2,7 @@
 
 [![QuickChat CI](https://github.com/tmosetlha/QuickChat/actions/workflows/maven.yml/badge.svg)](https://github.com/tmosetlha/QuickChat/actions/workflows/maven.yml)
 
-A Java console chat application: user registration and login, then sending, disregarding and storing messages. Built with Maven, tested with JUnit 5, and checked automatically by GitHub Actions on every push.
+A Java console chat application: user registration and login, then sending, disregarding and storing messages, and a Stored Messages menu to search, delete and report on them. Built with Maven, tested with JUnit 5, and checked automatically by GitHub Actions on every push.
 
 ## Features
 
@@ -28,6 +28,18 @@ A Java console chat application: user registration and login, then sending, disr
 - For each message the user can **send** it, **disregard** it (press `0` to delete), or **store** it to send later in `storedmessages.json`
 - After a message is sent its full details are shown (Message ID, Message Hash, Recipient, Message). The total number of messages sent is shown once all messages have been entered.
 
+### Stored messages
+
+- A fourth main menu option, **Stored Messages**, opens a menu (a to f) that works on the sent and stored messages
+- The messages are kept in five arrays that are filled while the program runs: **sent messages**, **disregarded messages**, **stored messages** (read from `storedmessages.json` when the program starts), **message hashes** and **message IDs**. The arrays grow automatically when they are full.
+- The menu options:
+  - **a.** display the sender and recipient of every message
+  - **b.** display the longest message
+  - **c.** search for a message ID and display its recipient and message
+  - **d.** search for all the messages for a particular recipient
+  - **e.** delete a message using its message hash (a deleted stored message is also removed from the JSON file)
+  - **f.** display a report with the full details of every message
+
 ## Project structure
 
 ```
@@ -39,11 +51,13 @@ QuickChat/
     │   ├── QuickChat.java           # Console application and menu
     │   ├── Register.java            # Registration and validation rules
     │   ├── Login.java               # Login checks and status messages
-    │   └── Message.java             # Message details, hash, send / disregard / store, JSON storage
+    │   ├── Message.java             # Message details, hash, send / disregard / store, JSON storage
+    │   └── MessageStore.java        # The five arrays and the stored-messages features
     └── test/java/com/tmui/quickchat/
         ├── RegisterTest.java
         ├── LoginTest.java
-        └── MessageTest.java
+        ├── MessageTest.java
+        └── MessageStoreTest.java
 ```
 
 ## Requirements
@@ -69,6 +83,7 @@ JUnit 5 tests cover:
 - username, password and cell phone validation, registration, and login messages
 - message length, recipient format, message ID and message hash, using the brief's test data
 - sending, disregarding and storing messages, the running total, and JSON storage
+- the five arrays, the longest message, searching by ID and by recipient, deleting by hash, the report, and reading and writing the JSON file, using the brief's five test messages
 
 ## Continuous integration
 
@@ -76,7 +91,7 @@ JUnit 5 tests cover:
 
 ## Git workflow
 
-`main` always holds working code. Each part is built on its own feature branch (for example `part2-messages`) and merged into `main` once the automated tests pass.
+`main` always holds working code. Each part is built on its own feature branch (`part2-messages` and `part3-stored-messages`) and merged into `main` once the automated tests pass.
 
 ## References
 
